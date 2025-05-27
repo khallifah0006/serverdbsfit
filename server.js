@@ -1,14 +1,8 @@
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
-import { fileURLToPath } from 'url';
-import path from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
-// Railway akan menyediakan PORT melalui environment variable
 const PORT = process.env.PORT || 3000;
 const PYTHON_API = "https://dbsfitml-production.up.railway.app/";
 
@@ -47,20 +41,33 @@ const workoutStorage = {
   }
 };
 
-app.use(cors());
+// CORS configuration for Netlify frontend
+app.use(cors({
+  origin: [
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'https://your-netlify-app.netlify.app', // Replace with your actual Netlify URL
+    /\.netlify\.app$/ // This allows any Netlify subdomain
+  ],
+  credentials: true
+}));
+
 app.use(express.json());
 
-// Serve static files from the dist directory for bundled webpack files
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// Fallback to serve the original files during development
-app.use(express.static(path.join(__dirname)));
-
-// Health check endpoint untuk Railway
+// Health check endpoint
 app.get("/", (req, res) => {
   res.json({
-    status: "OK",
-    message: "Workout Recommendation API is running",
+    success: true,
+    message: "Workout Recommendation API Server is running",
+    version: "1.0.0"
+  });
+});
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Server is healthy",
     timestamp: new Date().toISOString()
   });
 });
@@ -76,7 +83,7 @@ app.post("/api/recommend", async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.error("Error fetching recommendations:", error);
+    console.error("Error calling Python API:", error);
     res.status(500).json({ 
       success: false,
       error: "Gagal mengambil rekomendasi dari API Python" 
@@ -168,6 +175,6 @@ app.get("/api/saved-workouts/:id", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server berjalan di port ${PORT}`);
+  console.log(`Server proxy berjalan di port ${PORT}`);
   console.log(`API Python tersedia di ${PYTHON_API}`);
 });

@@ -1,7 +1,7 @@
 {
-  "name": "workout-recommendation-app",
+  "name": "workout-recommendation-api",
   "version": "1.0.0",
-  "description": "Workout recommendation API with Express.js",
+  "description": "Backend API server for workout recommendations",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -9,14 +9,13 @@
     "dev": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "node-fetch": "^3.3.2"
+    "express": "^4.18.2",
+    "node-fetch": "^3.2.10"
   },
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["express", "api", "workout", "recommendation"],
-  "author": "Your Name",
-  "license": "MIT"
+  "author": "",
+  "license": "ISC"
 }
