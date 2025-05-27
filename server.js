@@ -3,12 +3,15 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
+// Use Railway's PORT environment variable or fallback to 3000
 const PORT = process.env.PORT || 3000;
 const PYTHON_API = "https://dbsfitml-production.up.railway.app";
 
-// CORS middleware
+// CORS middleware - Update for production
 app.use(cors({
-  origin: '*',
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://your-frontend-domain.com', 'https://*.railway.app'] 
+    : '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
 }));
@@ -185,12 +188,34 @@ app.get("/api/health", (req, res) => {
   res.json({
     success: true,
     message: "Server is running",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Catch-all handler for serving the main HTML file
+// Root endpoint
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Workout Recommendation API Server",
+    endpoints: [
+      "POST /api/recommend - Get workout recommendations",
+      "POST /api/save - Save workout data",
+      "GET /api/saved-workouts - Get all saved workouts",
+      "GET /api/saved-workouts/:id - Get specific workout",
+      "GET /api/health - Health check"
+    ]
+  });
+});
+
+// Catch-all handler for serving the main HTML file (only if not API route)
 app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      success: false,
+      error: "API endpoint not found"
+    });
+  }
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -204,8 +229,9 @@ app.use((error, req, res, next) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server proxy berjalan di http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server proxy berjalan di port ${PORT}`);
   console.log(`API Python tersedia di ${PYTHON_API}`);
-  console.log(`Health check available at http://localhost:${PORT}/api/health`);
+  console.log(`Health check available at /api/health`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
